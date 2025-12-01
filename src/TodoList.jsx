@@ -1,9 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './TodoList.css';
 
+const LOCAL_STORAGE_KEY = 'todoApp.tasks';
+
 function TodoList() {
-  const [tasks, setTasks] = useState([]);
+  const [tasks, setTasks] = useState(() => {
+    const storedTasks = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (storedTasks) {
+      try {
+        return JSON.parse(storedTasks);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    return [];
+  });
   const [newTaskText, setNewTaskText] = useState('');
+
+  useEffect(() => {
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(tasks));
+  }, [tasks]);
 
   const handleAddTask = (e) => {
     e.preventDefault();
@@ -15,16 +31,16 @@ function TodoList() {
       isDone: false,
     };
 
-    setTasks([...tasks, newTask]);
+    setTasks(currentTasks => [...currentTasks, newTask]);
     setNewTaskText('');
   };
 
   const handleDeleteTask = (taskId) => {
-    setTasks(tasks.filter(task => task.id !== taskId));
+    setTasks(currentTasks => currentTasks.filter(task => task.id !== taskId));
   };
 
   const handleToggleDone = (taskId) => {
-    setTasks(tasks.map(task =>
+    setTasks(currentTasks => currentTasks.map(task =>
       task.id === taskId ? { ...task, isDone: !task.isDone } : task
     ));
   };
